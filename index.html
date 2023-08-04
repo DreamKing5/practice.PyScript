@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to manipulate records in a SQLite3 database with PyScript #1 🐍</title>  
+    <style>      
+        body {
+          margin: 5% 5% !important;
+        }      
+        .h1_article076 {
+            font-size:xx-large;
+        }        
+        .div_article076 {
+          border-radius: 5px;
+          color:coral;
+          background-color: #f2f2f2;
+          padding: 20px;
+        }
+    </style>    
+    <link rel='stylesheet' type='text/css' media='screen' href='https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css'>
+    <link rel="stylesheet" href="https://pyscript.net/alpha/pyscript.css" />
+    <script defer src="https://pyscript.net/alpha/pyscript.js"></script>        
+    <py-env>
+      - numpy
+      - pandas
+    </py-env>      
+</head>
+<body>    
+    <main>
+        <h1 class="h1_article076">Manipulate records in a SQLite3 database with PyScript #1 🐍</h1>  
+        <legend>Id</legend>
+        <input type="number" class="from-control" name="" id="id" /> 
+        <legend>Item Name</legend>
+        <input type="text" class="form-control" name="" id="item" />
+        <legend>Quantity</legend>
+        <input type="number" class="from-control" name="" id="quantity" />       
+        <legend>Unit Price</legend>
+        <input type="number" class="from-control" name="" id="price" />           
+        <hr />
+        <br />
+        <button id="insert" class="button is-primary" pys-onClick="insert_item">Insert</button>
+        <button id="update" class="button is-primary" pys-onClick="update_item">Update</button>
+        <button id="delete" class="button is-danger" pys-onClick="delete_item">Delete</button>
+        <button id="clear" class="button is-primary" pys-onClick="clear_input">Clear</button>
+        <button id="fetch" class="button is-primary" pys-onclick="fetch_record">Fetch Record</button>
+        <hr />
+        <br />
+        <div id="output" class="div_article076"></div>   
+    </main>
+    
+    <py-script>
+console.log('Executing python script...')        
+import numpy as np
+import pandas as pd
+import sqlite3 
+
+con = sqlite3.connect(':memory:')
+c = con.cursor()
+console.log("Connected sqlite3 database(':memory:')")
+
+sql = '''
+CREATE TABLE items ( 
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, 
+    item TEXT NOT NULL, 
+    qty INT NOT NULL, 
+    price INT NOT NULL
+    )
+'''
+c.execute(sql)
+console.log("Creating table {sql}...")
+
+def insert_item(*args, **kwargs):
+    item = Element('item').element.value
+    qty = Element('quantity').element.value
+    price = Element('price').element.value
+    sql = f"INSERT INTO items (item, qty, price) VALUES ('{item}', {qty}, {price})"
+    c.execute(sql)
+    con.commit()
+    console.log(f"Inserting data {sql}...")
+
+def update_item(*args, **kwargs):
+    id = Element('id').element.value    
+    item = Element('item').element.value
+    qty = Element('quantity').element.value
+    price = Element('price').element.value
+    sql = f"UPDATE items SET item='{item}', qty={qty}, price={price} WHERE id={id}"
+    c.execute(sql)
+    con.commit()
+    console.log("Updating data {sql}...")
+
+def delete_item(*args, **kwargs):
+    id = Element('id').element.value         
+    sql = f"DELETE FROM items WHERE id={id}"        
+    c.execute(sql)
+    con.commit()
+    console.log("Deleting data {sql}...")
+    
+def clear_input(*args, **kwargs):
+    Element('id').clear() 
+    Element('item').clear()
+    Element('quantity').clear()
+    Element('price').clear() 
+    console.log("Clearing input data...")    
+
+def fetch_record(*args, **kwargs):
+    sp = ' '; br = '<br />'          
+    data = f"id{sp*5}item{sp*5}qty{sp*5}price{br}"        
+    sql = "SELECT * FROM items"        
+    rows = c.execute(sql)    
+    for row in rows:
+        id = row[0]; item = row[1]; qty = int(row[2]); price = float(row[3])
+        console.log(id, item, qty, price)
+        rec = f"{id}{sp*5}{item}{sp*5}{qty}{sp*5}{price:,.2f}{br}"
+        data += rec
+   
+    pyscript.write('output', data)        
+    console.log(f"Feching data {sql}...")
+    </py-script>
+</body>
+</html>
